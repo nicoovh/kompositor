@@ -8,6 +8,12 @@
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
       padding: 20px;
+      text-align: center;
+    }
+
+    .logo {
+      max-width: 300px;
+      margin-bottom: 20px;
     }
 
     .pane {
@@ -15,9 +21,16 @@
       border: 1px solid #ddd;
       border-radius: 8px;
       padding: 20px;
-      margin-bottom: 20px;
+      margin: 20px auto;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       max-width: 700px;
+      text-align: left;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pane:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     .pane h2 {
@@ -34,17 +47,27 @@
     }
 
     button {
-      margin-right: 10px;
+      margin: 10px;
       padding: 8px 16px;
       border: none;
       background-color: #007bff;
       color: white;
       border-radius: 4px;
       cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
     button:hover {
       background-color: #0056b3;
+    }
+
+    .highlight {
+      animation: pulse 1s;
+    }
+
+    @keyframes pulse {
+      0% { background-color: #d4edda; }
+      100% { background-color: transparent; }
     }
 
     #output {
@@ -55,107 +78,148 @@
 </head>
 <body>
 
-  <div class="pane" id="result-pane">
-    <button onclick="generate()">Make me my Kompo</button>
-    <ul id="result"></ul>
-  </div>
+<img src="https://www.espacegramont.com/-/media/espacegramont/images/enseignes/kompo-devantutr-2/logo2/design-sans-titre-(29)/design-sans-titre-(30).png?as=0&w=650&hash=B69EF254C93A90C032F4E5E148F1E9A6" alt="Kompo Logo" class="logo">
 
-  <div class="pane" id="base-pane">
-    <h2>Base</h2>
-    <ul id="base"></ul>
-  </div>
+<div class="pane" id="result-pane">
+  <button onclick="generate()">Make me my Kompo</button>
+  <button onclick="removeMeat()">VEGE</button>
+  <button onclick="restoreMeat()">MEAT</button>
+  <button onclick="saveSelection()">Save Selection</button>
+  <button onclick="selectAll(true)">Select All</button>
+  <button onclick="selectAll(false)">Unselect All</button>
+  <ul id="result"></ul>
+</div>
 
-  <div class="pane" id="toppings-pane">
-    <h2>Toppings</h2>
-    <ul id="toppings"></ul>
-  </div>
+<div class="pane" id="base-pane">
+  <h2>🌿 Base</h2>
+  <ul id="base"></ul>
+</div>
 
-  <div class="pane" id="gourmandise-pane">
-    <h2>Gourmandise</h2>
-    <ul id="gourmandise"></ul>
-  </div>
+<div class="pane" id="toppings-pane">
+  <h2>🥜 Toppings</h2>
+  <ul id="toppings"></ul>
+</div>
 
-  <div class="pane" id="sauce-pane">
-    <h2>Gourmandise</h2>
-    <ul id="sauce"></ul>
-  </div>
+<div class="pane" id="gourmandise-pane">
+  <h2>🍬 Gourmandise</h2>
+  <ul id="gourmandise"></ul>
+</div>
 
-  <script>
-    const base = ['Salade', 'Pâtes', 'Riz', 'Boulghour', 'Wrap'];
-    const toppings = ["Betteraves","Pois Chiches","Courgettes","Mozzarella","Tomates","Thon","Concombres",
+<div class="pane" id="sauce-pane">
+  <h2>🍻 Sauce</h2>
+  <ul id="sauce"></ul>
+</div>
+
+<script>
+  const base = ['Salade', 'Pâtes', 'Riz', 'Boulghour', 'Wrap'];
+  const allToppings = [
+    "Betteraves","Pois Chiches","Courgettes","Mozzarella","Tomates","Thon","Concombres",
     "Carottes Rapées","Champignons","Feta","Pommes","Jambon Blanc","Avocat","Surimi","Oignons Rouges","Emmental",
     "Poulet","Oeufs","Pâtes","Roquefort","Tomates Séchées","Coeur de Palmiers","Olives Noires","Boulghour","Chèvre",
     "Roquette","Lentilles","Jambon Sec","Pousses d'épinards","Maïs","Fèves de Soja","Poivrons","Chou Rouge","pickles",
     "Patate Douce"];
-    const gourmandise = ['Cacahuètes', 'Coriandre', 'Noix', 'Graines de Tournesol', 'Cranberry', 'Croûtons', 'Raisins secs', 'Basilic', 'Oignons frits'];
-    const sauce = ['Asion', 'Miel Moutarde', 'Pesto', 'Huile d\'Olives', 'Légère', 'Olive Citron', 'César', 'Balsamic', 'Tapenade'];
+  const meatOptions = ["Thon","Jambon Blanc","Surimi","Poulet","Jambon Sec"];
+  let toppings = [...allToppings];
 
-    function createListItems(items, listId) {
-      const list = document.getElementById(listId);
-      list.innerHTML = ''; // Clear existing content
-      items.forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `<label><input type="checkbox" value="${item}" checked> ${item}</label>`;
-        list.appendChild(li);
-      });
-    }
-    // Run on page load
-    window.onload = function() {
-      createListItems(base, 'base');
-      createListItems(toppings, 'toppings');
-      createListItems(gourmandise, 'gourmandise');
-      createListItems(sauce, 'sauce');
+  const gourmandise = ['Cacahuètes', 'Coriandre', 'Noix', 'Graines de Tournesol', 'Cranberry', 'Croûtons', 'Raisins secs', 'Basilic', 'Oignons frits'];
+  const sauce = ['Asion', 'Miel Moutarde', 'Pesto', "Huile d'Olives", 'Légère', 'Olive Citron', 'César', 'Balsamic', 'Tapenade'];
+
+  function createListItems(items, listId, saved = []) {
+    const list = document.getElementById(listId);
+    list.innerHTML = '';
+    items.forEach(item => {
+      const li = document.createElement('li');
+      const isChecked = saved.includes(item);
+      li.innerHTML = `<label><input type="checkbox" value="${item}" ${isChecked ? 'checked' : ''}> ${item}</label>`;
+      list.appendChild(li);
+    });
+  }
+
+  function selectAll(state) {
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = state);
+  }
+
+  function loadSelections() {
+    const selections = JSON.parse(localStorage.getItem('kompoSelections')) || {};
+    createListItems(base, 'base', selections.base || []);
+    createListItems(toppings, 'toppings', selections.toppings || []);
+    createListItems(gourmandise, 'gourmandise', selections.gourmandise || []);
+    createListItems(sauce, 'sauce', selections.sauce || []);
+  }
+
+  function saveSelection() {
+    const selections = {
+      base: getCheckedItems('base'),
+      toppings: getCheckedItems('toppings'),
+      gourmandise: getCheckedItems('gourmandise'),
+      sauce: getCheckedItems('sauce')
     };
+    localStorage.setItem('kompoSelections', JSON.stringify(selections));
+    const resultPane = document.getElementById('result-pane');
+    resultPane.classList.add('highlight');
+    setTimeout(() => resultPane.classList.remove('highlight'), 1000);
+  }
 
-    function getCheckedItems(listId) {
-      const list = document.getElementById(listId);
-      const checkboxes = list.querySelectorAll('input[type="checkbox"]');
-      const checkedItems = [];
+  window.onload = function() {
+    loadSelections();
+  };
 
-      checkboxes.forEach(cb => {
-        if (cb.checked) {
-          checkedItems.push(cb.value);
-        }
-      });
+  function getCheckedItems(listId) {
+    const list = document.getElementById(listId);
+    const checkboxes = list.querySelectorAll('input[type="checkbox"]');
+    return Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+  }
 
-      return checkedItems;
+  function generate() {
+    const getRandom = arr => arr[Math.floor(Math.random() * arr.length)];
+
+    const result_base = getRandom(getCheckedItems('base'));
+    const result_gourm = getRandom(getCheckedItems('gourmandise'));
+    const result_sauce = getRandom(getCheckedItems('sauce'));
+    const selected_top = getCheckedItems('toppings');
+
+    let result_top = [];
+    for (let i = 0; i < 5 && selected_top.length > 0; i++) {
+      const index = Math.floor(Math.random() * selected_top.length);
+      result_top.push(selected_top.splice(index, 1)[0]);
     }
 
-    function generate() {
-        const selected_base = getCheckedItems('base');
-        const result_base = selected_base[Math.floor(Math.random() * selected_base.length)];
-        const li_base = document.createElement('li');
-        li_base.innerText = "Base : " + result_base;
+    const funkyNames = [
+      "Kompozilla", "MegaMunch", "Salad Bang", "Wrap Star", "Fork Frenzy", "Kompo Krunch",
+      "Zesty Kompo", "KompoLicious", "Tasty Kompo", "Greensplosion", "Crunch Carnival",
+      "Funky Fork", "Snackzilla", "Kompo Kaboom", "Yum Yeti", "Chopstorm", "Bowl Boss",
+      "Epic Munch", "Power Fork", "Lush Lunch", "Gusto Gobbler", "Flavorstorm",
+      "Saucy Spin", "Zen Kompo", "VibeBowl", "Fork Attack"
+    ];
+    const recipeName = getRandom(funkyNames);
 
-        const selected_sauce = getCheckedItems('sauce');
-        const result_sauce = selected_sauce[Math.floor(Math.random() * selected_sauce.length)];
-        const li_sauce = document.createElement('li');
-        li_sauce.innerText = "Sauce : " + result_sauce;
+    const result_list = document.getElementById("result");
+    result_list.innerHTML = '';
 
-        const selected_gourm = getCheckedItems('gourmandise');
-        const result_gourm = selected_gourm[Math.floor(Math.random() * selected_gourm.length)];
-        const li_gourm = document.createElement('li');
-        li_gourm.innerText = "Gourmandise : " + result_gourm;
+    const li_name = document.createElement('li');
+    li_name.innerText = `✨ ${recipeName} ✨`;
+    result_list.appendChild(li_name);
 
-        console.log(result_base + ", " + result_sauce + ", " + result_gourm);
+    result_list.innerHTML += `
+        <li>Base : ${result_base}</li>
+        <li>Toppings : ${result_top.join(", ")}</li>
+        <li>Gourmandise : ${result_gourm}</li>
+        <li>Sauce : ${result_sauce}</li>
+      `;
 
-        const selected_top = getCheckedItems('toppings')
-        let result_top = [];
-        for (let i = 0; i < 5; i++){
-            result_top.push(selected_top.splice(Math.floor(Math.random() * selected_top.length), 1));
-        }
-        console.log(result_top.join(", "));
-        const li_top = document.createElement('li');
-        li_top.innerText = "Toppings : " + result_top.join(", ");
+    result_list.classList.add('highlight');
+    setTimeout(() => result_list.classList.remove('highlight'), 1000);
+  }
 
-        const result_list = document.getElementById("result");
-        result_list.innerHTML = '';
-        result_list.appendChild(li_base);
-        result_list.appendChild(li_top);
-        result_list.appendChild(li_sauce);
-        result_list.appendChild(li_gourm);
-    }
+  function removeMeat() {
+    toppings = allToppings.filter(item => !meatOptions.includes(item));
+    createListItems(toppings, 'toppings');
+  }
 
-  </script>
+  function restoreMeat() {
+    toppings = [...allToppings];
+    createListItems(toppings, 'toppings');
+  }
+</script>
 </body>
 </html>
