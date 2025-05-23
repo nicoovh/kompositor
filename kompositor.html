@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kompositor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+
+    .pane {
+      background-color: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      max-width: 700px;
+    }
+
+    .pane h2 {
+      margin-top: 0;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    button {
+      margin-right: 10px;
+      padding: 8px 16px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #output {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pane" id="result-pane">
+    <button onclick="generate()">Make me my Kompo</button>
+    <ul id="result"></ul>
+  </div>
+
+  <div class="pane" id="base-pane">
+    <h2>Base</h2>
+    <ul id="base"></ul>
+  </div>
+
+  <div class="pane" id="toppings-pane">
+    <h2>Toppings</h2>
+    <ul id="toppings"></ul>
+  </div>
+
+  <div class="pane" id="gourmandise-pane">
+    <h2>Gourmandise</h2>
+    <ul id="gourmandise"></ul>
+  </div>
+
+  <div class="pane" id="sauce-pane">
+    <h2>Gourmandise</h2>
+    <ul id="sauce"></ul>
+  </div>
+
+  <script>
+    const base = ['Salade', 'Pâtes', 'Riz', 'Boulghour', 'Wrap'];
+    const toppings = ["Betteraves","Pois Chiches","Courgettes","Mozzarella","Tomates","Thon","Concombres",
+    "Carottes Rapées","Champignons","Feta","Pommes","Jambon Blanc","Avocat","Surimi","Oignons Rouges","Emmental",
+    "Poulet","Oeufs","Pâtes","Roquefort","Tomates Séchées","Coeur de Palmiers","Olives Noires","Boulghour","Chèvre",
+    "Roquette","Lentilles","Jambon Sec","Pousses d'épinards","Maïs","Fèves de Soja","Poivrons","Chou Rouge","pickles",
+    "Patate Douce"];
+    const gourmandise = ['Cacahuètes', 'Coriandre', 'Noix', 'Graines de Tournesol', 'Cranberry', 'Croûtons', 'Raisins secs', 'Basilic', 'Oignons frits'];
+    const sauce = ['Asion', 'Miel Moutarde', 'Pesto', 'Huile d\'Olives', 'Légère', 'Olive Citron', 'César', 'Balsamic', 'Tapenade'];
+
+    function createListItems(items, listId) {
+      const list = document.getElementById(listId);
+      list.innerHTML = ''; // Clear existing content
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `<label><input type="checkbox" value="${item}" checked> ${item}</label>`;
+        list.appendChild(li);
+      });
+    }
+    // Run on page load
+    window.onload = function() {
+      createListItems(base, 'base');
+      createListItems(toppings, 'toppings');
+      createListItems(gourmandise, 'gourmandise');
+      createListItems(sauce, 'sauce');
+    };
+
+    function getCheckedItems(listId) {
+      const list = document.getElementById(listId);
+      const checkboxes = list.querySelectorAll('input[type="checkbox"]');
+      const checkedItems = [];
+
+      checkboxes.forEach(cb => {
+        if (cb.checked) {
+          checkedItems.push(cb.value);
+        }
+      });
+
+      return checkedItems;
+    }
+
+    function generate() {
+        const selected_base = getCheckedItems('base');
+        const result_base = selected_base[Math.floor(Math.random() * selected_base.length)];
+        const li_base = document.createElement('li');
+        li_base.innerText = "Base : " + result_base;
+
+        const selected_sauce = getCheckedItems('sauce');
+        const result_sauce = selected_sauce[Math.floor(Math.random() * selected_sauce.length)];
+        const li_sauce = document.createElement('li');
+        li_sauce.innerText = "Sauce : " + result_sauce;
+
+        const selected_gourm = getCheckedItems('gourmandise');
+        const result_gourm = selected_gourm[Math.floor(Math.random() * selected_gourm.length)];
+        const li_gourm = document.createElement('li');
+        li_gourm.innerText = "Gourmandise : " + result_gourm;
+
+        console.log(result_base + ", " + result_sauce + ", " + result_gourm);
+
+        const selected_top = getCheckedItems('toppings')
+        let result_top = [];
+        for (let i = 0; i < 5; i++){
+            result_top.push(selected_top.splice(Math.floor(Math.random() * selected_top.length), 1));
+        }
+        console.log(result_top.join(", "));
+        const li_top = document.createElement('li');
+        li_top.innerText = "Toppings : " + result_top.join(", ");
+
+        const result_list = document.getElementById("result");
+        result_list.innerHTML = '';
+        result_list.appendChild(li_base);
+        result_list.appendChild(li_top);
+        result_list.appendChild(li_sauce);
+        result_list.appendChild(li_gourm);
+    }
+
+  </script>
+</body>
+</html>
